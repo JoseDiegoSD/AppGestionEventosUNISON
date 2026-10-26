@@ -1,5 +1,6 @@
 package com.example.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -23,8 +24,14 @@ class EventosActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         adapter = EventoAdapter(listaEventos) { evento ->
-            // Aquí abriremos el detalle del evento en el siguiente paso
-            Toast.makeText(this, "Seleccionaste: ${evento.nombre}", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, DetalleEventoActivity::class.java)
+            intent.putExtra("id", evento.id)
+            intent.putExtra("nombre", evento.nombre)
+            intent.putExtra("descripcion", evento.descripcion)
+            intent.putExtra("fechaHora", evento.fechaHora)
+            intent.putExtra("lugar", evento.lugar)
+            intent.putExtra("imagenUrl", evento.imagenUrl)
+            startActivity(intent)
         }
 
         binding.rvEventos.layoutManager = LinearLayoutManager(this)

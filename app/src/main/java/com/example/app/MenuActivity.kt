@@ -26,9 +26,16 @@ class MenuActivity : AppCompatActivity() {
             startActivity(Intent(this, EventosActivity::class.java))
         }
 
-        binding.btnPublicar.setOnClickListener { proximamente("Publicar proyecto") }
-        binding.btnProyectos.setOnClickListener { proximamente("Proyectos") }
-        binding.btnInteresados.setOnClickListener { proximamente("Interesados") }
+        binding.btnPublicar.setOnClickListener {
+            startActivity(Intent(this, PublicarProyectoActivity::class.java))
+        }
+        binding.btnProyectos.setOnClickListener {
+            startActivity(Intent(this, ProyectosActivity::class.java))
+        }
+
+        binding.btnInteresados.setOnClickListener {
+            startActivity(Intent(this, InteresadosActivity::class.java))
+        }
 
         binding.btnCerrarSesion.setOnClickListener {
             auth.signOut()
