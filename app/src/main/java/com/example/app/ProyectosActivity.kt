@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.app.databinding.ActivityProyectosBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.Query
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -16,6 +18,8 @@ class ProyectosActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProyectosBinding
     private val lista = mutableListOf<Proyecto>()
     private lateinit var adapter: ProyectoAdapter
+    private var proyectosQuery: Query? = null
+    private var proyectosListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,9 +33,22 @@ class ProyectosActivity : AppCompatActivity() {
         cargarProyectos()
     }
 
+    override fun onDestroy() {
+        proyectosListener?.let { proyectosQuery?.removeEventListener(it) }
+        super.onDestroy()
+    }
+
     private fun cargarProyectos() {
-        FirebaseDatabase.getInstance().reference.child("proyectos")
-            .addValueEventListener(object : ValueEventListener {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            binding.tvVacioProyectos.text = "Inicia sesión para ver tus proyectos"
+            binding.tvVacioProyectos.visibility = View.VISIBLE
+            return
+        }
+        val query = FirebaseDatabase.getInstance().reference.child("proyectos")
+            .orderByChild("autorId").equalTo(uid)
+        proyectosQuery = query
+        proyectosListener = query.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     lista.clear()
                     for (hijo in snapshot.children) {
@@ -46,7 +63,7 @@ class ProyectosActivity : AppCompatActivity() {
                     adapter.notifyDataSetChanged()
 
                     if (lista.isEmpty()) {
-                        binding.tvVacioProyectos.text = "Aún no hay proyectos publicados"
+                        binding.tvVacioProyectos.text = "Aún no has publicado proyectos"
                         binding.tvVacioProyectos.visibility = View.VISIBLE
                     } else {
                         binding.tvVacioProyectos.visibility = View.GONE

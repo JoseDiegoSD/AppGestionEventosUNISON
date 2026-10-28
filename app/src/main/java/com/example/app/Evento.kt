@@ -6,6 +6,7 @@ data class Evento(
     val descripcion: String = "",
     val fechaHora: String = "",
     val lugar: String = "",
-    val imagenUrl: String = ""
+    val imagenUrl: String = "",
+    val autorId: String = ""
 )
 
