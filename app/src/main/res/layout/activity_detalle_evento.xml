@@ -54,6 +54,16 @@
                 android:textColor="#666666"
                 android:textSize="16sp" />
 
+            <TextView
+                android:id="@+id/tvDetalleInteresados"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/interesados_cargando"
+                android:accessibilityLiveRegion="polite"
+                android:textColor="#17365D"
+                android:textSize="16sp" />
+
             <Button
                 android:id="@+id/btnMeInteresa"
                 android:layout_width="match_parent"

@@ -1,6 +1,10 @@
 package com.example.app
 
 import android.os.Bundle
+import android.view.View
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -19,6 +23,10 @@ class DetalleEventoActivity : AppCompatActivity() {
 
     private var eventoId = ""
     private var nombreEvento = ""
+    private var interesadosListener: ValueEventListener? = null
+    private val interesadosQuery by lazy {
+        db.child("interesados").orderByChild("eventoId").equalTo(eventoId)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +46,29 @@ class DetalleEventoActivity : AppCompatActivity() {
             .centerCrop()
             .into(binding.ivDetalle)
 
+        binding.ivDetalle.visibility = if (intent.getStringExtra("imagenUrl").isNullOrBlank()) View.GONE else View.VISIBLE
+        if (eventoId.isBlank()) {
+            binding.btnMeInteresa.isEnabled = false
+            binding.tvDetalleInteresados.setText(R.string.interesados_error)
+            return
+        }
+        interesadosListener = interesadosQuery.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                binding.tvDetalleInteresados.text = getString(R.string.interesados_cantidad, snapshot.childrenCount)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                binding.tvDetalleInteresados.setText(R.string.interesados_error)
+            }
+        })
         verificarRegistro()
 
         binding.btnMeInteresa.setOnClickListener { registrarInteres() }
+    }
+
+    override fun onDestroy() {
+        interesadosListener?.let { interesadosQuery.removeEventListener(it) }
+        super.onDestroy()
     }
 
     // Llave única: un usuario solo puede registrarse una vez por evento

@@ -38,7 +38,11 @@ class PublicarProyectoActivity : AppCompatActivity() {
             return
         }
 
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            Toast.makeText(this, "Inicia sesión primero", Toast.LENGTH_SHORT).show()
+            return
+        }
         val id = db.child("proyectos").push().key ?: return
 
         val proyecto = mapOf(
@@ -51,7 +55,14 @@ class PublicarProyectoActivity : AppCompatActivity() {
 
         binding.btnPublicar.isEnabled = false
 
-        db.child("proyectos").child(id).setValue(proyecto)
+        val evento = Evento(
+            nombre = nombre,
+            descripcion = descripcion,
+            fechaHora = "Publicado: $fecha",
+            autorId = uid
+        )
+        // Una escritura atómica evita publicar solo una de las dos copias.
+        db.updateChildren(mapOf("proyectos/$id" to proyecto, "eventos/$id" to evento))
             .addOnSuccessListener {
                 Toast.makeText(this, "Proyecto publicado", Toast.LENGTH_SHORT).show()
                 finish()

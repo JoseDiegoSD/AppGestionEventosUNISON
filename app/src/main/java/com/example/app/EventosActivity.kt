@@ -17,6 +17,9 @@ class EventosActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEventosBinding
     private val listaEventos = mutableListOf<Evento>()
     private lateinit var adapter: EventoAdapter
+    private val db = FirebaseDatabase.getInstance().reference
+    private var eventosListener: ValueEventListener? = null
+    private var interesadosListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +41,32 @@ class EventosActivity : AppCompatActivity() {
         binding.rvEventos.adapter = adapter
 
         cargarEventos()
+        interesadosListener = db.child("interesados").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                adapter.errorInteresados = false
+                adapter.interesadosPorEvento = snapshot.children.mapNotNull {
+                    it.child("eventoId").getValue(String::class.java)
+                }.groupingBy { it }.eachCount()
+                adapter.notifyDataSetChanged()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                adapter.interesadosPorEvento = null
+                adapter.errorInteresados = true
+                adapter.notifyDataSetChanged()
+                Toast.makeText(this@EventosActivity, "No se pudieron cargar los interesados: ${error.message}", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    override fun onDestroy() {
+        eventosListener?.let { db.child("eventos").removeEventListener(it) }
+        interesadosListener?.let { db.child("interesados").removeEventListener(it) }
+        super.onDestroy()
     }
 
     private fun cargarEventos() {
-        FirebaseDatabase.getInstance().reference.child("eventos")
+        eventosListener = db.child("eventos")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     listaEventos.clear()
